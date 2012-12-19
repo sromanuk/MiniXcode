@@ -14,6 +14,10 @@
 #define BUILD_PROGRESS_SPINNER_TAG			458
 
 #define kOMMiniXcodeDisableSchemeSelectionInTitleBar	@"OMMiniXcodeDisableSchemeSelectionInTitleBar"
+#define kOMMiniXcodeDisableToolbarInFullScreen          @"OMMiniXcodeDisableToolbarInFullScreen"
+
+#define TEXT_SHOW_TOOLBAR_IN_FULLSCREEN @"Show Toolbar in Full Screen"
+#define TEXT_HIDE_TOOLBAR_IN_FULLSCREEN @"Hide Toolbar in Full Screen"
 
 //TODO: Use the actual headers from class-dump
 
@@ -54,6 +58,10 @@
 			NSMenuItem *toggleSchemeInTitleBarItem = [[[NSMenuItem alloc] initWithTitle:@"Scheme Selection in Title Bar" action:@selector(toggleSchemeInTitleBar:) keyEquivalent:@""] autorelease];
 			[toggleSchemeInTitleBarItem setTarget:self];
 			[[viewMenuItem submenu] addItem:toggleSchemeInTitleBarItem];
+            
+            NSMenuItem *toggleToolbarInFullScreen = [[[NSMenuItem alloc] initWithTitle:TEXT_SHOW_TOOLBAR_IN_FULLSCREEN action:@selector(toggleToolbarInFullScreen:) keyEquivalent:@""] autorelease];
+            [toggleToolbarInFullScreen setTarget:self];
+            [[viewMenuItem submenu] addItem:toggleToolbarInFullScreen];
 		}
 		
 		[NSEvent addLocalMonitorForEventsMatchingMask:NSKeyDownMask handler:^NSEvent *(NSEvent *event) {
@@ -124,7 +132,17 @@
 	}
 	@catch (NSException *exception) { }
 }
-	
+
+- (void)toggleToolbarInFullScreen:(id)sender
+{
+    BOOL toolbarDisabled = ! [[[NSApp keyWindow] toolbar] isVisible];
+    
+    NSArray *workspaceWindowControllers = [NSClassFromString(@"IDEWorkspaceWindowController") workspaceWindowControllers];
+    for (NSWindow *window in [workspaceWindowControllers valueForKey:@"window"]) {
+        [[window toolbar] setVisible:toolbarDisabled];
+    }
+}
+
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
 	if ([menuItem action] == @selector(toggleSchemeInTitleBar:)) {
@@ -134,7 +152,21 @@
 		if (toolbarVisible) {
 			return NO;
 		}
-	}
+	} else if ([menuItem action] == @selector(toggleToolbarInFullScreen:)) {
+        BOOL toolbarVisible = [[[NSApp keyWindow] toolbar] isVisible];
+        BOOL fullScreen = ([[NSApp keyWindow] styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask;
+        
+        if (fullScreen && toolbarVisible) {
+            [menuItem setTitle:TEXT_HIDE_TOOLBAR_IN_FULLSCREEN];
+            return YES;
+        } else if (fullScreen && !toolbarVisible) {
+            [menuItem setTitle:TEXT_SHOW_TOOLBAR_IN_FULLSCREEN];
+            return YES;
+        } else {
+            return NO;
+        }
+    }
+    
 	return YES;
 }
 
