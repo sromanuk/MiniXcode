@@ -135,12 +135,8 @@
 
 - (void)toggleToolbarInFullScreen:(id)sender
 {
-    BOOL toolbarDisabled = ! [[[NSApp keyWindow] toolbar] isVisible];
-    
-    NSArray *workspaceWindowControllers = [NSClassFromString(@"IDEWorkspaceWindowController") workspaceWindowControllers];
-    for (NSWindow *window in [workspaceWindowControllers valueForKey:@"window"]) {
-        [[window toolbar] setVisible:toolbarDisabled];
-    }
+    BOOL toolbarDisabled = ! [[[NSApp keyWindow] toolbar] isVisible];    
+    [[[NSApp keyWindow] toolbar] setVisible:toolbarDisabled];
 }
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
